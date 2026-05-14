@@ -16,7 +16,8 @@ Pushed Phase 0 to GitHub. Both dev servers were running locally (backend port 80
    git add samples/ngo.csv && git commit -m "Add NGO sample dataset"
    ```
 2. **Create `backend/.env`** with `ANTHROPIC_API_KEY=sk-ant-...` (template at `backend/.env.example`).
-3. **Tell Claude:** "go on Phase 1, option (a)" (or (b) — see below). That kicks off:
+3. **Tell Claude:** "go on Phase 1". That kicks off:
+   - `backend/eval/generate_restaurant_csv.py` → `samples/restaurant.csv` (synthetic, fixed seed) — **decided: generating now, polish anomalies in Phase 3**
    - `PROFILE_PROMPT` in `app/agent/prompts.py`
    - `app/agent/profile.py` (LLM call + JSON validation)
    - `app/services/stats.py` (7 stat templates via DuckDB)
@@ -24,7 +25,6 @@ Pushed Phase 0 to GitHub. Both dev servers were running locally (backend port 80
 
 ## Open decisions
 
-- **Restaurant CSV:** (a) generate a basic synthetic version now so Phase 1 exits against both datasets, or (b) defer to Phase 3. Recommendation in last message: (a). Awaiting your call.
 - **Optional cleanup:** GitHub redirects `ryantellado/opsai` → `RyanTellado/opsai`. One-line fix: `git remote set-url origin https://github.com/RyanTellado/opsai.git`.
 
 ## Gotchas
