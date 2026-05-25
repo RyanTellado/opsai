@@ -1,5 +1,6 @@
 import io
 import json
+import warnings
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -7,6 +8,30 @@ import pandas as pd
 from app.storage import paths
 
 MAX_SAMPLE_VALUES = 5
+DATE_PARSE_MIN_HIT_RATE = 0.8  # ≥80% of non-null values must parse to keep the cast
+
+
+def _coerce_dates(df: pd.DataFrame) -> pd.DataFrame:
+    """Best-effort datetime parsing on object columns.
+
+    For each string column, try pd.to_datetime; keep the converted version
+    only if ≥80% of non-null values parsed successfully (otherwise the
+    column was probably a free-text field with a few date-looking strings).
+    """
+    for col in df.columns:
+        if df[col].dtype != object:
+            continue
+        non_null = df[col].dropna()
+        if non_null.empty:
+            continue
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            parsed = pd.to_datetime(non_null, errors="coerce", format="mixed")
+        hit_rate = parsed.notna().mean()
+        if hit_rate >= DATE_PARSE_MIN_HIT_RATE:
+            new_col = pd.to_datetime(df[col], errors="coerce", format="mixed")
+            df[col] = new_col
+    return df
 
 
 def ingest_csv(
@@ -21,6 +46,8 @@ def ingest_csv(
 
     if df.empty:
         raise ValueError("CSV has no rows.")
+
+    df = _coerce_dates(df)
 
     dataset_id = paths.new_id()
     dataset_dir = paths.dataset_dir(dataset_id)

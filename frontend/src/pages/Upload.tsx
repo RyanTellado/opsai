@@ -75,7 +75,83 @@ export default function Upload() {
         )}
       </form>
 
-      {result && <SchemaCard result={result} />}
+      {result && (
+        <>
+          <SchemaCard result={result} />
+          <ProfileCard result={result} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProfileCard({ result }: { result: DatasetResponse }) {
+  if (result.profile_error) {
+    return (
+      <section className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
+        <h2 className="font-semibold mb-1">Profile generation skipped</h2>
+        <p className="font-mono text-xs break-all">{result.profile_error}</p>
+        <p className="mt-2 text-amber-800">
+          The dataset is saved; you can retry profile generation by re-uploading once the LLM key is configured.
+        </p>
+      </section>
+    );
+  }
+  const p = result.profile;
+  if (!p) return null;
+  return (
+    <section className="mt-8 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="text-xl font-semibold text-slate-900">Domain profile</h2>
+        <span className="text-sm text-slate-500">{p.domain}</span>
+      </div>
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+        <Field label="Entity grain" value={p.entity_grain} />
+        <Field label="Expected seasonality" value={p.expected_seasonality} />
+        <Field label="Date column" value={p.key_columns.date ?? "—"} mono />
+        <Field label="Amount column" value={p.key_columns.amount ?? "—"} mono />
+        <Field label="Actor column" value={p.key_columns.actor ?? "—"} mono />
+        <Field label="Category column" value={p.key_columns.category ?? "—"} mono />
+      </dl>
+      <div className="mt-5">
+        <h3 className="text-sm font-medium text-slate-700 mb-2">Metrics of interest</h3>
+        <ul className="space-y-1 text-sm text-slate-700">
+          {p.metrics_of_interest.map((m) => (
+            <li key={m.name}>
+              <span className="font-mono text-slate-900">{m.name}</span>
+              <span className="text-slate-500"> — {m.definition}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="mt-5">
+        <h3 className="text-sm font-medium text-slate-700 mb-2">Anomaly hints</h3>
+        <ul className="list-disc list-inside text-sm text-slate-700 space-y-1">
+          {p.anomaly_hints.map((h, i) => <li key={i}>{h}</li>)}
+        </ul>
+      </div>
+      {Object.keys(p.glossary).length > 0 && (
+        <div className="mt-5">
+          <h3 className="text-sm font-medium text-slate-700 mb-2">Glossary</h3>
+          <dl className="text-sm space-y-1">
+            {Object.entries(p.glossary).map(([k, v]) => (
+              <div key={k}>
+                <dt className="inline font-mono text-slate-900">{k}</dt>
+                <dd className="inline text-slate-600"> — {v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <dt className="text-slate-500">{label}</dt>
+      <dd className={`text-slate-900 ${mono ? "font-mono text-sm" : ""}`}>{value}</dd>
     </div>
   );
 }

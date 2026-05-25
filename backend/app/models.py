@@ -33,3 +33,4 @@ class DatasetResponse(BaseModel):
     schema: DatasetSchema
     meta: DatasetMeta
     profile: Optional[dict] = None
+    profile_error: Optional[str] = None

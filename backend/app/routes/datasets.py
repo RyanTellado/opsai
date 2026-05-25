@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
+from app.agent import profile as profile_mod
 from app.services import ingest
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
@@ -33,6 +34,16 @@ async def create_dataset(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    profile_payload = None
+    profile_error = None
+    try:
+        profile_payload = profile_mod.generate_profile(result["dataset_id"])
+    except Exception as e:
+        profile_error = f"{type(e).__name__}: {e}"
+        print(f"[profile] generation failed for {result['dataset_id']}: {profile_error}")
+
+    result["profile"] = profile_payload
+    result["profile_error"] = profile_error
     return result
 
 
