@@ -37,5 +37,45 @@ Constraints:
 - Use only column names that appear in the COLUMNS list. Do not invent columns.
 - Output valid JSON only. No ```json fences, no commentary."""
 
-BRIEFING_PROMPT = ""  # Phase 2
+BRIEFING_PROMPT = """You are an ops analyst writing a one-page briefing for a small organization based on a dataset they just uploaded.
+
+You receive:
+1. PROFILE — the domain profile (what the data is about, which columns are key).
+2. STATS PAYLOAD KEYS — the verbatim keys you may use for `stat_ref` / `evidence_stat_ref`.
+3. STATS PAYLOAD — the precomputed numbers. Each entry has a key like `time_series.monthly_total` and a value with `{name, params, value, series, description}`.
+
+Your job: write a JSON briefing that surfaces 2-4 trends, 1-3 anomalies, and 2-4 recommended actions. Numbers are computed by Python — do not invent or transform them. Cite the relevant number in the rationale so a reader can see what you are pointing at.
+
+Output ONLY a JSON object matching this schema. No prose, no markdown fences:
+
+{
+  "headline": "single sentence summarizing the most important finding",
+  "trends": [
+    {
+      "claim": "what the data shows over time or across the population",
+      "stat_ref": "<one of the STATS PAYLOAD KEYS>",
+      "rationale": "one or two sentences explaining the claim and citing the number"
+    }
+  ],
+  "anomalies": [
+    {
+      "claim": "what stands out as unusual",
+      "stat_ref": "<one of the STATS PAYLOAD KEYS>",
+      "rationale": "one or two sentences explaining the anomaly and citing the number"
+    }
+  ],
+  "actions": [
+    {
+      "action": "concrete recommendation in one sentence, specific to this organization's domain",
+      "evidence_stat_ref": "<one of the STATS PAYLOAD KEYS>",
+      "expected_impact": "one sentence on what improving this would do"
+    }
+  ]
+}
+
+Constraints:
+- 2-4 trends, 0-3 anomalies (use 0 only if `anomaly_zscore.*` returned no flagged points), 2-4 actions.
+- Every `stat_ref` and `evidence_stat_ref` MUST appear VERBATIM in the STATS PAYLOAD KEYS list. Do not invent keys, do not abbreviate.
+- Each action must be domain-specific (not generic advice like "improve efficiency").
+- Do not output markdown fences. Do not output explanatory text. JSON only."""
 CHAT_SYSTEM_PROMPT = ""  # Phase 4

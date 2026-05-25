@@ -1,0 +1,12 @@
+{
+  "dataset_csv": "samples/restaurant.csv",
+  "user_description": "Casual dining restaurant order log; one row per line item across 12 months.",
+  "checks": [
+    {"type": "schema_valid"},
+    {"type": "min_items", "field": "trends", "n": 2},
+    {"type": "min_items", "field": "actions", "n": 2},
+    {"type": "all_trends_have_stat_ref"},
+    {"type": "all_actions_have_stat_ref"},
+    {"type": "keyword_any", "field": "headline", "options": ["revenue", "order", "server", "menu", "sales", "dining", "restaurant"]}
+  ]
+}

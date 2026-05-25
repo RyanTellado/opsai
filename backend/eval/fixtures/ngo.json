@@ -1,0 +1,12 @@
+{
+  "dataset_csv": "samples/ngo.csv",
+  "user_description": "Big NGO running mobile health clinics in rural India (Balaghat district, MP); one row per daily clinic visit with case counts.",
+  "checks": [
+    {"type": "schema_valid"},
+    {"type": "min_items", "field": "trends", "n": 2},
+    {"type": "min_items", "field": "actions", "n": 2},
+    {"type": "all_trends_have_stat_ref"},
+    {"type": "all_actions_have_stat_ref"},
+    {"type": "keyword_any", "field": "headline", "options": ["clinic", "case", "patient", "village", "doctor", "health"]}
+  ]
+}

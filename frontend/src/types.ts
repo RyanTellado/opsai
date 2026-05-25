@@ -46,3 +46,44 @@ export interface DatasetResponse {
   profile: Profile | null;
   profile_error: string | null;
 }
+
+export interface StatResult {
+  name: string;
+  params: Record<string, unknown>;
+  value: number | string | null;
+  series: unknown;
+  description: string;
+}
+
+export interface Trend {
+  claim: string;
+  stat_ref: string;
+  rationale: string;
+}
+
+export interface Anomaly {
+  claim: string;
+  stat_ref: string;
+  rationale: string;
+}
+
+export interface Action {
+  action: string;
+  evidence_stat_ref: string;
+  expected_impact: string;
+}
+
+export interface Briefing {
+  dataset_id: string;
+  briefing_id: string;
+  headline: string;
+  trends: Trend[];
+  anomalies: Anomaly[];
+  actions: Action[];
+}
+
+export interface BriefingBundle {
+  briefing: Briefing;
+  stats_payload: Record<string, StatResult>;
+  generated_at: string;
+}

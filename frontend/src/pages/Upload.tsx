@@ -2,11 +2,24 @@ import { useState } from "react";
 import { uploadDataset } from "../lib/api";
 import type { DatasetResponse } from "../types";
 
-export default function Upload() {
+interface Props {
+  dataset: DatasetResponse | null;
+  onUploaded: (d: DatasetResponse) => void;
+  onGenerateBriefing: () => void;
+  briefingLoading: boolean;
+  briefingError: string | null;
+}
+
+export default function Upload({
+  dataset,
+  onUploaded,
+  onGenerateBriefing,
+  briefingLoading,
+  briefingError,
+}: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<DatasetResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -14,10 +27,9 @@ export default function Upload() {
     if (!file || !description.trim()) return;
     setSubmitting(true);
     setError(null);
-    setResult(null);
     try {
       const res = await uploadDataset(file, description.trim());
-      setResult(res);
+      onUploaded(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -34,7 +46,10 @@ export default function Upload() {
         </p>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-5 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+      >
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
             CSV file
@@ -70,22 +85,79 @@ export default function Upload() {
           {submitting ? "Uploading…" : "Upload"}
         </button>
 
-        {error && (
-          <p className="text-sm text-red-600 mt-2">Error: {error}</p>
-        )}
+        {error && <p className="text-sm text-red-600 mt-2">Error: {error}</p>}
       </form>
 
-      {result && (
+      {dataset && (
         <>
-          <SchemaCard result={result} />
-          <ProfileCard result={result} />
+          <SchemaCard result={dataset} />
+          <ProfileCard
+            result={dataset}
+            onGenerateBriefing={onGenerateBriefing}
+            briefingLoading={briefingLoading}
+            briefingError={briefingError}
+          />
         </>
       )}
     </div>
   );
 }
 
-function ProfileCard({ result }: { result: DatasetResponse }) {
+function SchemaCard({ result }: { result: DatasetResponse }) {
+  return (
+    <section className="mt-8 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="text-xl font-semibold text-slate-900">Schema</h2>
+        <span className="text-sm text-slate-500">
+          {result.schema.row_count.toLocaleString()} rows · dataset {result.dataset_id.slice(0, 8)}…
+        </span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-left text-slate-600">
+              <th className="py-2 pr-4 font-medium">Column</th>
+              <th className="py-2 pr-4 font-medium">Type</th>
+              <th className="py-2 pr-4 font-medium">Null %</th>
+              <th className="py-2 font-medium">Sample values</th>
+            </tr>
+          </thead>
+          <tbody>
+            {result.schema.columns.map((col) => (
+              <tr
+                key={col.name}
+                className="border-b border-slate-100 last:border-0 align-top"
+              >
+                <td className="py-2 pr-4 font-mono text-slate-900">{col.name}</td>
+                <td className="py-2 pr-4 font-mono text-slate-700">{col.dtype}</td>
+                <td className="py-2 pr-4 text-slate-700">{col.null_pct.toFixed(1)}</td>
+                <td className="py-2 text-slate-700">
+                  <span className="font-mono text-xs text-slate-600">
+                    {col.sample_values.slice(0, 3).join(", ")}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+interface ProfileCardProps {
+  result: DatasetResponse;
+  onGenerateBriefing: () => void;
+  briefingLoading: boolean;
+  briefingError: string | null;
+}
+
+function ProfileCard({
+  result,
+  onGenerateBriefing,
+  briefingLoading,
+  briefingError,
+}: ProfileCardProps) {
   if (result.profile_error) {
     return (
       <section className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
@@ -127,7 +199,9 @@ function ProfileCard({ result }: { result: DatasetResponse }) {
       <div className="mt-5">
         <h3 className="text-sm font-medium text-slate-700 mb-2">Anomaly hints</h3>
         <ul className="list-disc list-inside text-sm text-slate-700 space-y-1">
-          {p.anomaly_hints.map((h, i) => <li key={i}>{h}</li>)}
+          {p.anomaly_hints.map((h, i) => (
+            <li key={i}>{h}</li>
+          ))}
         </ul>
       </div>
       {Object.keys(p.glossary).length > 0 && (
@@ -143,6 +217,19 @@ function ProfileCard({ result }: { result: DatasetResponse }) {
           </dl>
         </div>
       )}
+
+      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-3">
+        <button
+          onClick={onGenerateBriefing}
+          disabled={briefingLoading}
+          className="inline-flex items-center px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed"
+        >
+          {briefingLoading ? "Generating briefing… (up to ~60s)" : "Generate briefing"}
+        </button>
+        {briefingError && (
+          <p className="text-sm text-red-600">Error: {briefingError}</p>
+        )}
+      </div>
     </section>
   );
 }
@@ -153,44 +240,5 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
       <dt className="text-slate-500">{label}</dt>
       <dd className={`text-slate-900 ${mono ? "font-mono text-sm" : ""}`}>{value}</dd>
     </div>
-  );
-}
-
-function SchemaCard({ result }: { result: DatasetResponse }) {
-  return (
-    <section className="mt-8 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-      <div className="flex items-baseline justify-between mb-4">
-        <h2 className="text-xl font-semibold text-slate-900">Schema</h2>
-        <span className="text-sm text-slate-500">
-          {result.schema.row_count.toLocaleString()} rows · dataset {result.dataset_id.slice(0, 8)}…
-        </span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-600">
-              <th className="py-2 pr-4 font-medium">Column</th>
-              <th className="py-2 pr-4 font-medium">Type</th>
-              <th className="py-2 pr-4 font-medium">Null %</th>
-              <th className="py-2 font-medium">Sample values</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.schema.columns.map((col) => (
-              <tr key={col.name} className="border-b border-slate-100 last:border-0 align-top">
-                <td className="py-2 pr-4 font-mono text-slate-900">{col.name}</td>
-                <td className="py-2 pr-4 font-mono text-slate-700">{col.dtype}</td>
-                <td className="py-2 pr-4 text-slate-700">{col.null_pct.toFixed(1)}</td>
-                <td className="py-2 text-slate-700">
-                  <span className="font-mono text-xs text-slate-600">
-                    {col.sample_values.slice(0, 3).join(", ")}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
   );
 }
