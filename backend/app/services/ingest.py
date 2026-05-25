@@ -1,5 +1,6 @@
 import io
 import json
+import unicodedata
 import warnings
 from datetime import datetime, timezone
 
@@ -9,6 +10,28 @@ from app.storage import paths
 
 MAX_SAMPLE_VALUES = 5
 DATE_PARSE_MIN_HIT_RATE = 0.8  # ≥80% of non-null values must parse to keep the cast
+
+
+def _sanitize_column_names(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize column names so SQL/JSON tooling can reference them.
+
+    Replaces embedded newlines, tabs, and runs of whitespace with single
+    spaces. Disambiguates collisions with _2, _3, ... CSVs in the wild (the
+    NGO one, for example) sometimes have multi-line headers from Excel
+    exports that survive into the parsed columns as literal `\\n`.
+    """
+    seen: dict[str, int] = {}
+    new_cols: list[str] = []
+    for name in df.columns:
+        clean = unicodedata.normalize("NFC", " ".join(str(name).split())) or "unnamed"
+        if clean in seen:
+            seen[clean] += 1
+            clean = f"{clean}_{seen[clean]}"
+        else:
+            seen[clean] = 1
+        new_cols.append(clean)
+    df.columns = new_cols
+    return df
 
 
 def _coerce_dates(df: pd.DataFrame) -> pd.DataFrame:
@@ -47,6 +70,7 @@ def ingest_csv(
     if df.empty:
         raise ValueError("CSV has no rows.")
 
+    df = _sanitize_column_names(df)
     df = _coerce_dates(df)
 
     dataset_id = paths.new_id()

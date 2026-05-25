@@ -1,5 +1,6 @@
 import type { BriefingBundle, StatResult } from "../types";
 import { StatBadge } from "../components/StatBadge";
+import { ChatPanel } from "../components/ChatPanel";
 
 interface Props {
   bundle: BriefingBundle;
@@ -66,6 +67,8 @@ export default function Brief({ bundle, onBack }: Props) {
           />
         ))}
       </Section>
+
+      <ChatPanel datasetId={briefing.dataset_id} />
     </div>
   );
 }

@@ -87,3 +87,21 @@ export interface BriefingBundle {
   stats_payload: Record<string, StatResult>;
   generated_at: string;
 }
+
+export interface ChatTraceEntry {
+  tool: string;
+  input: Record<string, unknown>;
+  output?: unknown;
+  error?: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  trace: ChatTraceEntry[];
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  trace?: ChatTraceEntry[];
+}

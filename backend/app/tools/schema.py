@@ -25,25 +25,37 @@ TOOLS = [
     },
     {
         "name": "compute_stat",
-        "description": "Run a named stat template from the registry and return its numeric result. Available names: time_series, period_over_period, topn, category_distribution, anomaly_zscore, null_rates, summary.",
+        "description": (
+            "Run a named stat template and return its numeric result. "
+            "Use exact param names listed below.\n\n"
+            "- summary  params: {date_col?, amount_col?}\n"
+            "- null_rates  params: {}\n"
+            "- time_series  params: {date_col, amount_col?, period: 'day'|'week'|'month', agg?: 'sum'|'count'|'avg'}\n"
+            "- period_over_period  params: same as time_series\n"
+            "- topn  params: {group_col, amount_col?, n?: int (default 5), agg?: 'sum'|'count'|'avg'}\n"
+            "- category_distribution  params: {category_col}\n"
+            "- anomaly_zscore  params: time_series params + {window?: int (default 6), threshold?: float (default 2.0)}\n\n"
+            "Use list_columns() first if you need to know the exact column names. "
+            "Use double-quoted identifiers in SQL only — params here take raw strings."
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "name": {
                     "type": "string",
                     "enum": [
+                        "summary",
+                        "null_rates",
                         "time_series",
                         "period_over_period",
                         "topn",
                         "category_distribution",
                         "anomaly_zscore",
-                        "null_rates",
-                        "summary",
                     ],
                 },
                 "params": {
                     "type": "object",
-                    "description": "Template-specific parameters (e.g., {metric, by, period}).",
+                    "description": "Template-specific parameters (see tool description for exact names).",
                 },
             },
             "required": ["name"],
@@ -51,13 +63,13 @@ TOOLS = [
     },
     {
         "name": "run_sql",
-        "description": "Run a read-only SELECT query against the dataset's parquet file via DuckDB. SELECT only, single statement, results truncated to 5000 rows.",
+        "description": "Run a read-only SELECT (or `WITH ... SELECT`) query against the dataset's parquet file via DuckDB. Reference the table as `dataset` (e.g. `SELECT COUNT(*) FROM dataset WHERE ...`). Single statement. Results truncated to 5000 rows. Column names with spaces or special chars must be double-quoted.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "sql": {
                     "type": "string",
-                    "description": "A single SELECT statement. No DDL or DML.",
+                    "description": "A single SELECT statement against the `dataset` view.",
                 },
             },
             "required": ["sql"],
