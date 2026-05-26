@@ -1,0 +1,12 @@
+{
+  "dataset_csv": "samples/cafe_ops_small.csv",
+  "user_description": "Small café operations: one row per dish per day, including units sold, menu price, ingredient cost (COGS), allocated labor + rent, average wait time, and total daily customer count.",
+  "checks": [
+    {"type": "schema_valid"},
+    {"type": "min_items", "field": "trends", "n": 2},
+    {"type": "min_items", "field": "actions", "n": 2},
+    {"type": "all_trends_have_stat_ref"},
+    {"type": "all_actions_have_stat_ref"},
+    {"type": "keyword_any", "field": "headline", "options": ["café", "cafe", "coffee", "dish", "menu", "revenue", "cost", "margin", "wait", "service", "labor", "sales", "order"]}
+  ]
+}

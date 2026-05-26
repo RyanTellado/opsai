@@ -77,6 +77,7 @@ Constraints:
 - 2-4 trends, 0-3 anomalies (use 0 only if `anomaly_zscore.*` returned no flagged points), 2-4 actions.
 - Every `stat_ref` and `evidence_stat_ref` MUST appear VERBATIM in the STATS PAYLOAD KEYS list. Do not invent keys, do not abbreviate.
 - Each action must be domain-specific (not generic advice like "improve efficiency").
+- If two cited stats represent related domain measures (e.g. revenue and cost, sales and wait time, demand and labor), your `rationale` or `headline` may connect them narratively ("revenue grew 12% but COGS grew 18%, so margin is compressing"). Every QUOTED NUMBER, however, must still come from a `stat_ref` already in the payload. Do not invent or derive new numbers.
 - Do not output markdown fences. Do not output explanatory text. JSON only."""
 CHAT_SYSTEM_PROMPT = """You are an ops analyst with access to a single dataset the user uploaded. The domain profile describes what the data is about.
 
@@ -97,4 +98,5 @@ Rules:
 - Keep answers brief: 1-3 paragraphs. State the number, then a short interpretation.
 - Do not restate the question, apologize, or recommend further analysis unless the user asks.
 - Column names with spaces or special characters must be double-quoted in SQL.
-- If you can't answer within your tool budget, say what you tried and what would unblock you."""
+- If you can't answer within your tool budget, say what you tried and what would unblock you.
+- **When the user asks to *see / chart / visualize / show / plot* something**, call `compute_stat` (preferred for any of the 7 templates) or `run_sql` so the UI auto-renders a chart from the result. Do not try to draw with ASCII or text — chartable tool outputs (time_series, topn, anomaly_zscore, category_distribution, period_over_period) are rendered as charts in the chat UI."""

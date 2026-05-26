@@ -1,5 +1,5 @@
-import type { BriefingBundle, StatResult } from "../types";
-import { StatBadge } from "../components/StatBadge";
+import type { BriefingBundle } from "../types";
+import { ChartCard } from "../components/charts/ChartCard";
 import { ChatPanel } from "../components/ChatPanel";
 
 interface Props {
@@ -29,11 +29,12 @@ export default function Brief({ bundle, onBack }: Props) {
 
       <Section title="Trends">
         {briefing.trends.map((t, i) => (
-          <Item
+          <ChartCard
             key={i}
-            primary={t.claim}
             statRef={t.stat_ref}
             stat={stats_payload[t.stat_ref]}
+            payload={stats_payload}
+            primary={t.claim}
             secondary={t.rationale}
           />
         ))}
@@ -44,11 +45,12 @@ export default function Brief({ bundle, onBack }: Props) {
           <p className="text-sm text-slate-500">No anomalies flagged.</p>
         ) : (
           briefing.anomalies.map((a, i) => (
-            <Item
+            <ChartCard
               key={i}
-              primary={a.claim}
               statRef={a.stat_ref}
               stat={stats_payload[a.stat_ref]}
+              payload={stats_payload}
+              primary={a.claim}
               secondary={a.rationale}
             />
           ))
@@ -57,11 +59,12 @@ export default function Brief({ bundle, onBack }: Props) {
 
       <Section title="Recommended actions">
         {briefing.actions.map((a, i) => (
-          <Item
+          <ChartCard
             key={i}
-            primary={a.action}
             statRef={a.evidence_stat_ref}
             stat={stats_payload[a.evidence_stat_ref]}
+            payload={stats_payload}
+            primary={a.action}
             secondary={a.expected_impact}
             secondaryLabel="Expected impact"
           />
@@ -77,36 +80,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mb-8">
       <h2 className="text-xl font-semibold text-slate-900 mb-3">{title}</h2>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-6">{children}</div>
     </section>
-  );
-}
-
-function Item({
-  primary,
-  statRef,
-  stat,
-  secondary,
-  secondaryLabel,
-}: {
-  primary: string;
-  statRef: string;
-  stat: StatResult | undefined;
-  secondary: string;
-  secondaryLabel?: string;
-}) {
-  return (
-    <div className="border-l-2 border-slate-200 pl-4">
-      <p className="text-slate-900">{primary}</p>
-      <div className="my-1.5">
-        <StatBadge statRef={statRef} stat={stat} />
-      </div>
-      <p className="text-sm text-slate-600">
-        {secondaryLabel && (
-          <span className="font-medium text-slate-700">{secondaryLabel}: </span>
-        )}
-        {secondary}
-      </p>
-    </div>
   );
 }

@@ -1,6 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { sendChat } from "../lib/api";
-import type { ChatMessage, ChatTraceEntry } from "../types";
+import type { ChatMessage, ChatTraceEntry, StatResult } from "../types";
+import { renderChart } from "./charts/ChartCard";
+
+const CHARTABLE_STATS = new Set([
+  "time_series",
+  "topn",
+  "anomaly_zscore",
+  "period_over_period",
+  "category_distribution",
+]);
+
+interface ChatChart {
+  statRef: string;
+  stat: StatResult;
+}
+
+function extractCharts(trace: ChatTraceEntry[]): ChatChart[] {
+  const charts: ChatChart[] = [];
+  const payload: Record<string, StatResult> = {};
+  trace.forEach((t, i) => {
+    if (t.tool !== "compute_stat" || !t.output) return;
+    const out = t.output as Partial<StatResult> & { series?: unknown };
+    if (!out.name || !CHARTABLE_STATS.has(out.name)) return;
+    if (!Array.isArray(out.series) || out.series.length === 0) return;
+    const statRef = `${out.name}.chat_${i}`;
+    const stat = out as StatResult;
+    payload[statRef] = stat;
+    charts.push({ statRef, stat });
+  });
+  return charts;
+}
 
 interface Props {
   datasetId: string;
@@ -93,13 +123,26 @@ export function ChatPanel({ datasetId }: Props) {
 
 function Message({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
+  const charts = !isUser && message.trace ? extractCharts(message.trace) : [];
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+        className={`${isUser ? "max-w-[85%]" : "max-w-[95%] w-full"} rounded-lg px-3 py-2 text-sm ${
           isUser ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-900"
         }`}
       >
+        {charts.length > 0 && (
+          <div className="space-y-3 mb-3">
+            {charts.map((c) => (
+              <div key={c.statRef} className="bg-white rounded-md border border-slate-200 p-2">
+                <div className="text-[10px] font-mono uppercase tracking-wide text-slate-500 mb-1">
+                  {c.stat.name} · {c.stat.description ?? ""}
+                </div>
+                {renderChart(c.statRef, c.stat, { [c.statRef]: c.stat }, true)}
+              </div>
+            ))}
+          </div>
+        )}
         <div className="whitespace-pre-wrap">{message.content}</div>
         {!isUser && message.trace && message.trace.length > 0 && (
           <TraceDetails trace={message.trace} />
