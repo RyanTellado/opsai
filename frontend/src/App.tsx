@@ -1,17 +1,33 @@
 import { useState } from "react";
+import Login from "./pages/Login";
 import Upload from "./pages/Upload";
 import Brief from "./pages/Brief";
 import { createBriefing } from "./lib/api";
+import { getUser, isLoggedIn, logout } from "./lib/auth";
 import type { BriefingBundle, DatasetResponse } from "./types";
 
-type Stage = "upload" | "brief";
+type Stage = "auth" | "upload" | "brief";
 
 export default function App() {
-  const [stage, setStage] = useState<Stage>("upload");
+  const [stage, setStage] = useState<Stage>(() => (isLoggedIn() ? "upload" : "auth"));
+  const [userName, setUserName] = useState<string>(() => getUser()?.name ?? "");
   const [dataset, setDataset] = useState<DatasetResponse | null>(null);
   const [bundle, setBundle] = useState<BriefingBundle | null>(null);
   const [briefingLoading, setBriefingLoading] = useState(false);
   const [briefingError, setBriefingError] = useState<string | null>(null);
+
+  function handleLogin(name: string) {
+    setUserName(name);
+    setStage("upload");
+  }
+
+  function handleLogout() {
+    logout();
+    setUserName("");
+    setDataset(null);
+    setBundle(null);
+    setStage("auth");
+  }
 
   async function handleGenerateBriefing() {
     if (!dataset) return;
@@ -28,12 +44,16 @@ export default function App() {
     }
   }
 
-  function resetToUpload() {
+  function handleBack() {
     setStage("upload");
   }
 
+  if (stage === "auth") {
+    return <Login onLogin={handleLogin} />;
+  }
+
   if (stage === "brief" && bundle) {
-    return <Brief bundle={bundle} onBack={resetToUpload} />;
+    return <Brief bundle={bundle} onBack={handleBack} userName={userName} onLogout={handleLogout} />;
   }
 
   return (
@@ -47,6 +67,8 @@ export default function App() {
       onGenerateBriefing={handleGenerateBriefing}
       briefingLoading={briefingLoading}
       briefingError={briefingError}
+      userName={userName}
+      onLogout={handleLogout}
     />
   );
 }

@@ -8,6 +8,8 @@ interface Props {
   onGenerateBriefing: () => void;
   briefingLoading: boolean;
   briefingError: string | null;
+  userName?: string;
+  onLogout?: () => void;
 }
 
 export default function Upload({
@@ -16,6 +18,8 @@ export default function Upload({
   onGenerateBriefing,
   briefingLoading,
   briefingError,
+  userName,
+  onLogout,
 }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
@@ -39,11 +43,21 @@ export default function Upload({
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold text-slate-900">OpsAI</h1>
-        <p className="text-slate-600 mt-1">
-          Upload a CSV and describe your organization in one sentence.
-        </p>
+      <header className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold text-slate-900">OpsAI</h1>
+          <p className="text-slate-600 mt-1">
+            {userName ? `Hello, ${userName.split(" ")[0]}. ` : ""}Upload a CSV and describe your organization in one sentence.
+          </p>
+        </div>
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="text-sm text-slate-500 hover:text-slate-900 mt-1"
+          >
+            Sign out
+          </button>
+        )}
       </header>
 
       <form

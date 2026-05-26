@@ -102,7 +102,7 @@ def _build_user_message(profile: dict, payload: dict) -> str:
     )
 
 
-def generate_briefing(dataset_id: str) -> dict:
+def generate_briefing(dataset_id: str, user_id: str | None = None) -> dict:
     """Run the full briefing pipeline. Returns the bundle dict."""
     meta = load_dataset_metadata(dataset_id)
     profile = meta.get("profile")
@@ -158,4 +158,21 @@ def generate_briefing(dataset_id: str) -> dict:
     (out_dir / f"{briefing.briefing_id}.json").write_text(
         json.dumps(bundle, indent=2, default=str)
     )
+
+    if user_id:
+        from app.db import get_conn
+        with get_conn() as conn:
+            conn.execute(
+                "INSERT INTO reports (id, user_id, dataset_id, briefing_id, headline, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    paths.new_id(),
+                    user_id,
+                    dataset_id,
+                    briefing.briefing_id,
+                    briefing.headline,
+                    datetime.now(timezone.utc).isoformat(),
+                ),
+            )
+
     return bundle

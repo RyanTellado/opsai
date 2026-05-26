@@ -9,13 +9,13 @@ An AI operations analyst for small organizations. User uploads a CSV + a one-sen
 1. **Deterministic vs. LLM split.** All numbers come from pandas/DuckDB. The LLM decides which numbers matter and writes prose around them. Recommendations must cite a computed statistic via `stat_ref`.
 2. **Generic engine + domain profile.** No hard-coded domains. On upload, the LLM generates a `profile.json` that's passed into every downstream prompt.
 3. **Chat tool-use loop is gated.** Designed now, built only in Phase 4 if Phases 0–3 finish on time. Max 5 iterations per chat turn. Tools (read-only): `list_columns`, `get_profile`, `compute_stat`, `run_sql`.
-4. **Simple stack.** No LangChain. No vector DB. No SQL DB at all (no SQLite, no Postgres). No custom training. No fine-tuning.
+4. **Simple stack.** No LangChain. No vector DB. No Postgres, no ORM. User/report metadata lives in a single SQLite file (`data/opsai.db`); dataset/briefing content stays as parquet + JSON on disk. No custom training. No fine-tuning.
 
 ## Stack
 
 - **Backend:** FastAPI, pandas, DuckDB (SQL-over-parquet), Anthropic SDK (Claude Sonnet 4.6, native tool use).
 - **Frontend:** React + Vite + TypeScript + Tailwind + shadcn/ui.
-- **Storage:** parquet on disk for datasets; JSON files on disk for all metadata (schema, profile, briefing). **No SQLite, no DB.**
+- **Storage:** parquet on disk for datasets; JSON files on disk for briefing/profile metadata; SQLite (`data/opsai.db`) for users and report index only.
 - **Deploy:** localhost only. No Render, no Vercel, no Docker — revisit only if Phase 5 has slack.
 - **LLM access:** `ANTHROPIC_API_KEY` in `.env` (loaded at startup; never committed).
 
@@ -51,7 +51,7 @@ An AI operations analyst for small organizations. User uploads a CSV + a one-sen
 ## Do not build
 
 **Storage / infra:**
-- No SQLite, no Postgres, no migrations, no ORM. Parquet + JSON files only.
+- No Postgres, no migrations framework, no ORM. SQLite for users/reports index only (via Python's built-in `sqlite3`). Parquet + JSON for all dataset and briefing content.
 - No async job queue, no Celery, no Redis, no worker process. All requests synchronous.
 - No websockets, no SSE for upload progress.
 - No Docker, no docker-compose, no Kubernetes.
@@ -59,8 +59,8 @@ An AI operations analyst for small organizations. User uploads a CSV + a one-sen
 - No CI/CD.
 
 **Auth / multi-user:**
-- No user accounts, no login, no sessions, no auth.
-- No multi-tenancy, no per-user namespaces.
+- Auth is email + password + JWT (24h). Passwords hashed with bcrypt. No OAuth, no magic links, no 2FA.
+- Per-user report scoping is in scope. No per-user dataset isolation beyond the reports index.
 
 **Data ingestion:**
 - No file format other than CSV. No Excel, no JSON, no Google Sheets connector, no S3 sync.

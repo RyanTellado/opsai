@@ -5,19 +5,28 @@ import { ChatPanel } from "../components/ChatPanel";
 interface Props {
   bundle: BriefingBundle;
   onBack: () => void;
+  userName?: string;
+  onLogout?: () => void;
 }
 
-export default function Brief({ bundle, onBack }: Props) {
+export default function Brief({ bundle, onBack, userName, onLogout }: Props) {
   const { briefing, stats_payload } = bundle;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
-      <button
-        onClick={onBack}
-        className="text-sm text-slate-500 hover:text-slate-900 mb-6"
-      >
-        ← Back to upload
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={onBack}
+          className="text-sm text-slate-500 hover:text-slate-900"
+        >
+          ← Back to upload
+        </button>
+        {onLogout && (
+          <button onClick={onLogout} className="text-sm text-slate-500 hover:text-slate-900">
+            {userName ? `${userName.split(" ")[0]} · ` : ""}Sign out
+          </button>
+        )}
+      </div>
 
       <header className="mb-8">
         <h1 className="text-3xl font-semibold text-slate-900">Briefing</h1>
