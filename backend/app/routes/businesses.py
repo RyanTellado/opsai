@@ -61,6 +61,22 @@ def list_businesses(user_id: str = Depends(get_current_user)):
     return [dict(r) for r in rows]
 
 
+@router.delete("/businesses/{business_id}", status_code=204)
+def delete_business(
+    business_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    with get_conn() as conn:
+        biz = conn.execute(
+            "SELECT id FROM businesses WHERE id = ? AND user_id = ?",
+            (business_id, user_id),
+        ).fetchone()
+        if not biz:
+            raise HTTPException(status_code=404, detail="Business not found.")
+        conn.execute("DELETE FROM reports WHERE business_id = ?", (business_id,))
+        conn.execute("DELETE FROM businesses WHERE id = ?", (business_id,))
+
+
 @router.get("/businesses/{business_id}/reports")
 def list_business_reports(
     business_id: str,

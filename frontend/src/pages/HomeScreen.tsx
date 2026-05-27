@@ -1,6 +1,17 @@
-import { KpiStrip } from "../components/KpiStrip";
+import { formatValue } from "../components/charts/chartUtils";
 import { getUser } from "../lib/auth";
 import type { BriefingBundle, BusinessWithMeta } from "../types";
+
+function HomeTile({ label, value, compact }: { label: string; value: string; compact?: boolean }) {
+  return (
+    <div className="flex-1 px-6 first:pl-0 last:pr-0">
+      <div className={`font-bold text-slate-900 leading-tight ${compact ? "text-xl" : "text-3xl"}`}>
+        {value}
+      </div>
+      <div className="text-[11px] uppercase tracking-wide text-slate-500 mt-1">{label}</div>
+    </div>
+  );
+}
 
 interface Props {
   business: BusinessWithMeta;
@@ -19,6 +30,17 @@ export default function HomeScreen({ business, bundle, onViewBriefing, onNewBrie
     day: "numeric",
     year: "numeric",
   });
+
+  // KPI data from summary.overview
+  interface SummarySeries { row_count?: number; date_range?: [string, string] | null; total_amount?: number | null; }
+  const overview = (stats_payload["summary.overview"]?.series as SummarySeries | null) ?? {};
+  const dateRange = overview.date_range
+    ? `${overview.date_range[0].split(" ")[0]} → ${overview.date_range[1].split(" ")[0]}`
+    : null;
+  const totalAmount = overview.total_amount != null ? `$${formatValue(overview.total_amount)}` : null;
+  const avgValue = (overview.total_amount != null && overview.row_count)
+    ? `$${formatValue(overview.total_amount / overview.row_count)}`
+    : null;
 
   const topTrends = briefing.trends.slice(0, 2);
   const topAction = briefing.actions[0] ?? null;
@@ -68,7 +90,13 @@ export default function HomeScreen({ business, bundle, onViewBriefing, onNewBrie
       </div>
 
       {/* KPI strip */}
-      <KpiStrip stat={stats_payload["summary.overview"]} />
+      {(dateRange || totalAmount || avgValue) && (
+        <div className="bg-white border border-slate-200 rounded-lg px-6 py-4 flex divide-x divide-slate-200 mb-6">
+          {dateRange && <HomeTile label="Date range" value={dateRange} compact />}
+          {totalAmount && <HomeTile label="Total value" value={totalAmount} />}
+          {avgValue && <HomeTile label="Avg. per record" value={avgValue} />}
+        </div>
+      )}
 
       {/* Key findings */}
       {topTrends.length > 0 && (

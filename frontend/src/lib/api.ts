@@ -77,6 +77,17 @@ export async function listBusinesses(): Promise<BusinessWithMeta[]> {
   return handleResponse<BusinessWithMeta[]>(res);
 }
 
+export async function deleteBusiness(businessId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/businesses/${businessId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status}: ${text}`);
+  }
+}
+
 export async function getBusinessReports(businessId: string): Promise<ReportSummary[]> {
   const res = await fetch(`${API_BASE}/businesses/${businessId}/reports`, {
     headers: authHeaders(),

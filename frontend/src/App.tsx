@@ -73,6 +73,15 @@ export default function App() {
     selectBusiness(biz);
   }
 
+  function handleBusinessDeleted(id: string) {
+    setBusinesses((prev) => prev.filter((b) => b.id !== id));
+    if (activeBusiness?.id === id) {
+      setActiveBusiness(null);
+      setActiveBundle(null);
+      setBusinessReports([]);
+    }
+  }
+
   function handleBriefingGenerated(bundle: BriefingBundle, reports: ReportSummary[]) {
     setActiveBundle(bundle);
     setBusinessReports(reports);
@@ -108,6 +117,7 @@ export default function App() {
       onLogout={handleLogout}
       onBusinessCreated={handleBusinessCreated}
       onBusinessSelected={handleBusinessSelected}
+      onBusinessDeleted={handleBusinessDeleted}
       onBriefingGenerated={handleBriefingGenerated}
       onReportSelected={handleReportSelected}
     />

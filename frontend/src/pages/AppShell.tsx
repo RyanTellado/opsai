@@ -11,6 +11,7 @@ import type { BriefingBundle, BusinessWithMeta, ReportSummary } from "../types";
 import {
   createBusiness,
   createBriefingForBusiness,
+  deleteBusiness,
   getBriefingBundle,
   getBusinessReports,
   uploadDataset,
@@ -24,6 +25,7 @@ interface Props {
   onLogout: () => void;
   onBusinessCreated: (b: BusinessWithMeta) => void;
   onBusinessSelected: (b: BusinessWithMeta) => void;
+  onBusinessDeleted: (id: string) => void;
   onBriefingGenerated: (bundle: BriefingBundle, reports: ReportSummary[]) => void;
   onReportSelected: (bundle: BriefingBundle) => void;
 }
@@ -36,6 +38,7 @@ export default function AppShell({
   onLogout,
   onBusinessCreated,
   onBusinessSelected,
+  onBusinessDeleted,
   onBriefingGenerated,
   onReportSelected,
 }: Props) {
@@ -68,6 +71,7 @@ export default function AppShell({
           activeId={activeBusiness?.id ?? null}
           onSelect={onBusinessSelected}
           onCreateNew={() => setCreatingBiz(true)}
+          onDelete={async (id) => { await deleteBusiness(id); onBusinessDeleted(id); }}
         />
 
         <main className="flex-1 overflow-y-auto bg-slate-50">
