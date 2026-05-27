@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavBar } from "../components/NavBar";
 import { BusinessSidebar } from "../components/BusinessSidebar";
 import { CreateBusinessModal } from "../components/CreateBusinessModal";
@@ -6,6 +6,7 @@ import { KpiStrip } from "../components/KpiStrip";
 import { ChartCard } from "../components/charts/ChartCard";
 import { ChatPanel } from "../components/ChatPanel";
 import OnboardingScreen from "./OnboardingScreen";
+import HomeScreen from "./HomeScreen";
 import type { BriefingBundle, BusinessWithMeta, ReportSummary } from "../types";
 import {
   createBusiness,
@@ -40,6 +41,10 @@ export default function AppShell({
 }: Props) {
   const [creatingBiz, setCreatingBiz] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [mainView, setMainView] = useState<"home" | "briefing">("home");
+
+  // Reset to home when switching businesses
+  useEffect(() => { setMainView("home"); }, [activeBusiness?.id]);
 
   async function handleCreateBusiness(name: string, industry: string, description: string) {
     const biz = await createBusiness(name, industry, description);
@@ -75,12 +80,21 @@ export default function AppShell({
               onGenerated={onBriefingGenerated}
             />
           )}
-          {activeBusiness && activeBundle && businessReports.length > 0 && (
+          {activeBusiness && activeBundle && businessReports.length > 0 && mainView === "home" && (
+            <HomeScreen
+              business={activeBusiness}
+              bundle={activeBundle}
+              onViewBriefing={() => setMainView("briefing")}
+              onNewBriefing={() => setUploadOpen(true)}
+            />
+          )}
+          {activeBusiness && activeBundle && businessReports.length > 0 && mainView === "briefing" && (
             <BriefingSection
               bundle={activeBundle}
               reports={businessReports}
               onSelectReport={onReportSelected}
               onNewBriefing={() => setUploadOpen(true)}
+              onBackToHome={() => setMainView("home")}
             />
           )}
         </main>
@@ -98,6 +112,7 @@ export default function AppShell({
           onGenerated={(bundle, reports) => {
             onBriefingGenerated(bundle, reports);
             setUploadOpen(false);
+            setMainView("home");
           }}
           onClose={() => setUploadOpen(false)}
         />
@@ -208,11 +223,13 @@ function BriefingSection({
   reports,
   onSelectReport,
   onNewBriefing,
+  onBackToHome,
 }: {
   bundle: BriefingBundle;
   reports: ReportSummary[];
   onSelectReport: (bundle: BriefingBundle) => void;
   onNewBriefing: () => void;
+  onBackToHome: () => void;
 }) {
   const { briefing, stats_payload } = bundle;
   const [chatOpen, setChatOpen] = useState(false);
@@ -234,6 +251,12 @@ function BriefingSection({
       {/* Header row */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex-1 min-w-0 mr-4">
+          <button
+            onClick={onBackToHome}
+            className="text-sm text-slate-500 hover:text-slate-900 mb-2 block transition-colors"
+          >
+            ← Overview
+          </button>
           <div className="flex items-center gap-3 mb-2">
             {reports.length > 1 && (
               <select

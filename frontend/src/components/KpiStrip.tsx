@@ -25,7 +25,7 @@ export function KpiStrip({ stat }: Props) {
         label="Total rows"
         value={s.row_count !== undefined ? formatValue(s.row_count) : "—"}
       />
-      <Tile label="Date range" value={dateRange} />
+      <Tile label="Date range" value={dateRange} compact />
       {hasAmount && (
         <Tile label="Total value" value={`$${formatValue(s.total_amount!)}`} />
       )}
@@ -33,10 +33,12 @@ export function KpiStrip({ stat }: Props) {
   );
 }
 
-function Tile({ label, value }: { label: string; value: string }) {
+function Tile({ label, value, compact }: { label: string; value: string; compact?: boolean }) {
   return (
     <div className="flex-1 px-6 first:pl-0 last:pr-0">
-      <div className="text-3xl font-bold text-slate-900 leading-tight">{value}</div>
+      <div className={`font-bold text-slate-900 leading-tight ${compact ? "text-xl" : "text-3xl"}`}>
+        {value}
+      </div>
       <div className="text-[11px] uppercase tracking-wide text-slate-500 mt-1">{label}</div>
     </div>
   );

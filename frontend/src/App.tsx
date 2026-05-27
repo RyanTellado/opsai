@@ -77,16 +77,17 @@ export default function App() {
     setActiveBundle(bundle);
     setBusinessReports(reports);
     setBusinesses((prev) =>
-      prev.map((b) =>
-        b.id === activeBusiness?.id
-          ? {
-              ...b,
-              report_count: reports.length,
-              last_briefing_at: bundle.generated_at,
-              latest_headline: bundle.briefing.headline,
-            }
-          : b
-      )
+      prev.map((b) => {
+        if (b.id !== activeBusiness?.id) return b;
+        const updated = {
+          ...b,
+          report_count: reports.length,
+          last_briefing_at: bundle.generated_at,
+          latest_headline: bundle.briefing.headline,
+        };
+        setActiveBusiness(updated);
+        return updated;
+      })
     );
   }
 
