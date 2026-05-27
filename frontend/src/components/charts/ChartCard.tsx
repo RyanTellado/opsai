@@ -17,6 +17,7 @@ interface Props {
   secondary: string;
   secondaryLabel?: string;
   compact?: boolean;
+  anomaly?: boolean;
 }
 
 export function ChartCard({
@@ -27,9 +28,10 @@ export function ChartCard({
   secondary,
   secondaryLabel,
   compact,
+  anomaly,
 }: Props) {
   return (
-    <article className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+    <article className={`rounded-lg p-4 shadow-sm border ${anomaly ? "bg-amber-50/40 border-amber-300" : "bg-white border-slate-200"}`}>
       <p className={`text-slate-900 ${compact ? "text-sm" : ""} mb-3`}>{primary}</p>
       <div className="mb-2">{renderChart(statRef, stat, payload, compact)}</div>
       <div className="mt-2">

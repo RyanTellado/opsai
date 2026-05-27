@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { uploadDataset } from "../lib/api";
 import type { DatasetResponse } from "../types";
+import { NavBar } from "../components/NavBar";
 
 interface Props {
   dataset: DatasetResponse | null;
@@ -8,8 +9,7 @@ interface Props {
   onGenerateBriefing: () => void;
   briefingLoading: boolean;
   briefingError: string | null;
-  userName?: string;
-  onLogout?: () => void;
+  onLogout: () => void;
 }
 
 export default function Upload({
@@ -18,7 +18,6 @@ export default function Upload({
   onGenerateBriefing,
   briefingLoading,
   briefingError,
-  userName,
   onLogout,
 }: Props) {
   const [file, setFile] = useState<File | null>(null);
@@ -42,77 +41,71 @@ export default function Upload({
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10">
-      <header className="mb-8 flex items-start justify-between">
-        <div>
+    <div className="min-h-screen bg-slate-50">
+      <NavBar onLogout={onLogout} />
+
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <header className="mb-8">
           <h1 className="text-3xl font-semibold text-slate-900">OpsAI</h1>
           <p className="text-slate-600 mt-1">
-            {userName ? `Hello, ${userName.split(" ")[0]}. ` : ""}Upload a CSV and describe your organization in one sentence.
+            Upload a CSV and describe your organization in one sentence.
           </p>
-        </div>
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="text-sm text-slate-500 hover:text-slate-900 mt-1"
-          >
-            Sign out
-          </button>
-        )}
-      </header>
+        </header>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
-      >
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            CSV file
-          </label>
-          <input
-            type="file"
-            accept=".csv"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            One-sentence description of your organization
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., Small NGO tracking individual donations across campaigns."
-            className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-            rows={2}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={!file || !description.trim() || submitting}
-          className="inline-flex items-center px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed"
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5 bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
         >
-          {submitting ? "Uploading…" : "Upload"}
-        </button>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              CSV file
+            </label>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+              required
+            />
+          </div>
 
-        {error && <p className="text-sm text-red-600 mt-2">Error: {error}</p>}
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              One-sentence description of your organization
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g., Small NGO tracking individual donations across campaigns."
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              rows={2}
+              required
+            />
+          </div>
 
-      {dataset && (
-        <>
-          <SchemaCard result={dataset} />
-          <ProfileCard
-            result={dataset}
-            onGenerateBriefing={onGenerateBriefing}
-            briefingLoading={briefingLoading}
-            briefingError={briefingError}
-          />
-        </>
-      )}
+          <button
+            type="submit"
+            disabled={!file || !description.trim() || submitting}
+            className="inline-flex items-center px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed"
+          >
+            {submitting ? "Uploading…" : "Upload"}
+          </button>
+
+          {error && <p className="text-sm text-red-600 mt-2">Error: {error}</p>}
+        </form>
+
+        {dataset && (
+          <>
+            <SchemaCard result={dataset} />
+            <ProfileCard
+              result={dataset}
+              onGenerateBriefing={onGenerateBriefing}
+              briefingLoading={briefingLoading}
+              briefingError={briefingError}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

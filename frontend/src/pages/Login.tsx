@@ -3,7 +3,7 @@ import { loginUser, signupUser } from "../lib/api";
 import { setToken, setUser } from "../lib/auth";
 
 interface Props {
-  onLogin: (name: string) => void;
+  onLogin: () => void;
 }
 
 export default function Login({ onLogin }: Props) {
@@ -25,7 +25,7 @@ export default function Login({ onLogin }: Props) {
           : await loginUser(email.trim(), password);
       setToken(res.token);
       setUser({ name: res.name, email: res.email });
-      onLogin(res.name);
+      onLogin();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       // surface the detail message if the backend returned JSON
