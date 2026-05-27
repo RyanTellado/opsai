@@ -2,7 +2,11 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   LabelList,
+  Legend,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -10,6 +14,8 @@ import {
 } from "recharts";
 import type { StatResult } from "../../types";
 import { COLORS, truncate } from "./chartUtils";
+
+const PIE_COLORS = ["#2563eb", "#0891b2", "#7c3aed", "#db2777", "#d97706", "#16a34a"];
 
 interface SeriesPoint {
   category?: string;
@@ -32,6 +38,43 @@ export function CategoryDistributionChart({ stat, height }: Props) {
     pct: p.pct ?? 0,
     count: p.count ?? 0,
   }));
+
+  if (data.length <= 6) {
+    return (
+      <ResponsiveContainer width="100%" height={height ?? 200}>
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="pct"
+            nameKey="category"
+            cx="50%"
+            cy="50%"
+            outerRadius={70}
+            label={({ pct }: { pct: number }) => `${pct}%`}
+            labelLine={false}
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(v: number, name: string, payload: { payload?: { count?: number } }) => [
+              `${v}% (${payload?.payload?.count ?? "—"} rows)`,
+              name,
+            ]}
+            contentStyle={{ fontSize: 12 }}
+          />
+          <Legend
+            iconSize={10}
+            formatter={(value) => (
+              <span style={{ fontSize: 11, color: COLORS.axis }}>{value}</span>
+            )}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  }
+
   const resolvedHeight = height ?? Math.max(140, data.length * 28 + 40);
   return (
     <ResponsiveContainer width="100%" height={resolvedHeight}>
