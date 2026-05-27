@@ -105,3 +105,26 @@ export interface ChatMessage {
   content: string;
   trace?: ChatTraceEntry[];
 }
+
+export interface Business {
+  id: string;
+  name: string;
+  industry: string;
+  description: string;
+  created_at: string;
+}
+
+export interface BusinessWithMeta extends Business {
+  report_count: number;
+  last_briefing_at: string | null;
+  latest_headline: string | null;
+}
+
+export interface ReportSummary {
+  id: string;
+  headline: string;
+  created_at: string;
+  dataset_id: string;
+  briefing_id: string;
+  business_id: string | null;
+}

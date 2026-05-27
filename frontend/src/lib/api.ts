@@ -1,4 +1,12 @@
-import type { BriefingBundle, ChatMessage, ChatResponse, DatasetResponse } from "../types";
+import type {
+  BriefingBundle,
+  Business,
+  BusinessWithMeta,
+  ChatMessage,
+  ChatResponse,
+  DatasetResponse,
+  ReportSummary,
+} from "../types";
 import { getToken } from "./auth";
 
 const API_BASE = "http://127.0.0.1:8000";
@@ -49,24 +57,36 @@ export async function loginUser(
   return handleResponse<AuthResponse>(res);
 }
 
-// ── Reports ───────────────────────────────────────────────────────────────────
+// ── Businesses ────────────────────────────────────────────────────────────────
 
-export interface ReportSummary {
-  id: string;
-  headline: string;
-  created_at: string;
-  dataset_id: string;
-  briefing_id: string;
+export async function createBusiness(
+  name: string,
+  industry: string,
+  description: string,
+): Promise<Business> {
+  const res = await fetch(`${API_BASE}/businesses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ name, industry, description }),
+  });
+  return handleResponse<Business>(res);
 }
 
-export async function listReports(): Promise<ReportSummary[]> {
-  const res = await fetch(`${API_BASE}/users/me/reports`, {
+export async function listBusinesses(): Promise<BusinessWithMeta[]> {
+  const res = await fetch(`${API_BASE}/businesses`, { headers: authHeaders() });
+  return handleResponse<BusinessWithMeta[]>(res);
+}
+
+export async function getBusinessReports(businessId: string): Promise<ReportSummary[]> {
+  const res = await fetch(`${API_BASE}/businesses/${businessId}/reports`, {
     headers: authHeaders(),
   });
   return handleResponse<ReportSummary[]>(res);
 }
 
-export async function getBriefing(briefingId: string): Promise<BriefingBundle> {
+// ── Reports / Briefings ───────────────────────────────────────────────────────
+
+export async function getBriefingBundle(briefingId: string): Promise<BriefingBundle> {
   const res = await fetch(`${API_BASE}/briefings/${briefingId}`, {
     headers: authHeaders(),
   });
@@ -91,10 +111,14 @@ export async function uploadDataset(
   return handleResponse<DatasetResponse>(res);
 }
 
-export async function createBriefing(datasetId: string): Promise<BriefingBundle> {
+export async function createBriefingForBusiness(
+  datasetId: string,
+  businessId: string,
+): Promise<BriefingBundle> {
   const res = await fetch(`${API_BASE}/datasets/${datasetId}/briefings`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ business_id: businessId }),
   });
   return handleResponse<BriefingBundle>(res);
 }

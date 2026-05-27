@@ -27,6 +27,16 @@ def init_db() -> None:
                 created_at   TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS businesses (
+                id           TEXT PRIMARY KEY,
+                user_id      TEXT NOT NULL,
+                name         TEXT NOT NULL,
+                industry     TEXT NOT NULL,
+                description  TEXT NOT NULL,
+                created_at   TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
+
             CREATE TABLE IF NOT EXISTS reports (
                 id           TEXT PRIMARY KEY,
                 user_id      TEXT NOT NULL,

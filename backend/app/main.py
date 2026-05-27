@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from app.db import init_db
-from app.routes import briefings, chat, datasets
+from app.routes import briefings, businesses as businesses_routes, chat, datasets
 from app.routes import auth as auth_routes
 
 app = FastAPI(title="OpsAI")
@@ -21,6 +21,7 @@ app.add_middleware(
 init_db()
 
 app.include_router(auth_routes.router)
+app.include_router(businesses_routes.router)
 app.include_router(datasets.router)
 app.include_router(briefings.router)
 app.include_router(chat.router)

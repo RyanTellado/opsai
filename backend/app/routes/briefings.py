@@ -1,6 +1,8 @@
 import json
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from app.auth import get_current_user
 from app.services import briefing as briefing_svc
@@ -9,12 +11,22 @@ from app.storage import paths
 router = APIRouter(tags=["briefings"])
 
 
+class CreateBriefingRequest(BaseModel):
+    business_id: Optional[str] = None
+
+
 @router.post("/datasets/{dataset_id}/briefings")
-def create_briefing(dataset_id: str, user_id: str = Depends(get_current_user)):
+def create_briefing(
+    dataset_id: str,
+    body: CreateBriefingRequest = CreateBriefingRequest(),
+    user_id: str = Depends(get_current_user),
+):
     if not paths.dataset_dir(dataset_id).exists():
         raise HTTPException(status_code=404, detail="Dataset not found.")
     try:
-        return briefing_svc.generate_briefing(dataset_id, user_id=user_id)
+        return briefing_svc.generate_briefing(
+            dataset_id, user_id=user_id, business_id=body.business_id
+        )
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
