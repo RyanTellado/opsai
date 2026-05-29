@@ -127,6 +127,21 @@ export default function AppShell({
 
 // ── UploadSection ─────────────────────────────────────────────────────────────
 
+const GENERATE_STEPS = [
+  "Analyzing your data…",
+  "Computing statistics…",
+  "Writing briefing…",
+];
+
+function Spinner() {
+  return (
+    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
 function UploadSection({
   business,
   onGenerated,
@@ -138,6 +153,13 @@ function UploadSection({
   const [description, setDescription] = useState(business.description);
   const [status, setStatus] = useState<"idle" | "uploading" | "generating">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [stepIdx, setStepIdx] = useState(0);
+
+  useEffect(() => {
+    if (status !== "generating") { setStepIdx(0); return; }
+    const id = setInterval(() => setStepIdx(i => Math.min(i + 1, GENERATE_STEPS.length - 1)), 14000);
+    return () => clearInterval(id);
+  }, [status]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -205,19 +227,28 @@ function UploadSection({
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={!file || busy}
-            className="w-full py-3 bg-slate-900 text-white text-sm font-medium rounded-xl
-                       hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed
-                       transition-colors"
-          >
-            {status === "uploading"
-              ? "Uploading…"
-              : status === "generating"
-              ? "Generating briefing… (up to ~60s)"
-              : "Upload & Generate briefing →"}
-          </button>
+          <div className="space-y-3">
+            <button
+              type="submit"
+              disabled={!file || busy}
+              className="w-full py-3 bg-slate-900 text-white text-sm font-medium rounded-xl
+                         hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed
+                         transition-colors flex items-center justify-center gap-2"
+            >
+              {busy && <Spinner />}
+              {status === "uploading"
+                ? "Uploading…"
+                : status === "generating"
+                ? "Generating briefing…"
+                : "Upload & Generate briefing →"}
+            </button>
+
+            {status === "generating" && (
+              <p className="text-center text-sm text-slate-400">
+                {GENERATE_STEPS[stepIdx]}
+              </p>
+            )}
+          </div>
         </form>
       </div>
     </div>
@@ -405,7 +436,14 @@ function NewBriefingDrawer({
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "uploading" | "generating">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [stepIdx, setStepIdx] = useState(0);
   const busy = status !== "idle";
+
+  useEffect(() => {
+    if (status !== "generating") { setStepIdx(0); return; }
+    const id = setInterval(() => setStepIdx(i => Math.min(i + 1, GENERATE_STEPS.length - 1)), 14000);
+    return () => clearInterval(id);
+  }, [status]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -458,28 +496,36 @@ function NewBriefingDrawer({
             </div>
           )}
 
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={!file || busy}
-              className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg
-                         hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed
-                         transition-colors"
-            >
-              {status === "uploading"
-                ? "Uploading…"
-                : status === "generating"
-                ? "Generating… (~60s)"
-                : "Upload & Generate →"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={busy}
-              className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-40 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="space-y-2">
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={!file || busy}
+                className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg
+                           hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed
+                           transition-colors flex items-center justify-center gap-2"
+              >
+                {busy && <Spinner />}
+                {status === "uploading"
+                  ? "Uploading…"
+                  : status === "generating"
+                  ? "Generating briefing…"
+                  : "Upload & Generate →"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-40 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            {status === "generating" && (
+              <p className="text-center text-sm text-slate-400">
+                {GENERATE_STEPS[stepIdx]}
+              </p>
+            )}
           </div>
         </form>
       </div>
