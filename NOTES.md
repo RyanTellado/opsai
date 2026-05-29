@@ -1,4 +1,4 @@
-# Handoff — last updated 2026-05-27
+# Handoff — last updated 2026-05-29
 
 ## What is built and working
 
@@ -180,12 +180,14 @@ POST /datasets/{id}/chat
 
 ## What's left for the demo (CS153 deadline)
 
-The core product is complete. Potential polish items before the demo:
+The core product is complete. One remaining polish item:
 
-1. **Eval runner** — `python -m eval.run` over fixtures in `backend/eval/fixtures/`. Run it and make sure briefings pass keyword + schema checks. The café fixture (`cafe_ops.json`) may need to be generated if missing.
-2. **Error UX** — if briefing generation fails (API error, validation failure), the frontend currently shows a raw error string. A friendlier message would help.
-3. **Loading state** — the "Generating briefing (~60s)" button is the only feedback. A progress indicator or animated dots would be more polished for a demo.
-4. **Multiple businesses demo** — showing a second business in the sidebar (different industry) would make the product feel more general.
+1. **Multiple businesses demo** — pre-seeding a second business in a different industry (just sign up a fresh account and upload a CSV) would make the product feel more general during the demo. This is a setup task, not a code change.
+
+**Completed polish (2026-05-29):**
+- **Eval runner** — confirmed ALL GREEN: 18/18 checks across café, NGO, and restaurant fixtures. ~43–52s per fixture.
+- **Error UX** — `handleResponse` in `api.ts` now extracts the `detail` field from JSON error bodies. 5xx errors show a generic "Something went wrong. Please try again." All error displays are styled as a `bg-red-50` box instead of raw red text.
+- **Loading state** — briefing generation now shows a spinner in the button + a step indicator below ("Analyzing your data…" → "Computing statistics…" → "Writing briefing…") that cycles every 14s.
 
 **Do not build** (per CLAUDE.md): forecasting, what-if, PDF export, dark mode, mobile layout, email delivery, Postgres, Docker, CI/CD.
 
@@ -218,6 +220,9 @@ This test (saved at `/tmp/test_opsai2.cjs`) signs up a fresh user, runs through 
 ## Git history
 
 ```
+26fb0ce Add spinner and animated step indicator to briefing loading state
+bf8f4b4 Improve error UX — friendly messages instead of raw API strings
+e795bd1 Update NOTES.md handoff for current state (2026-05-27)
 f470061 Add port 5175 to CORS allowed origins
 ae43975 Add delete business + home screen KPI strip (date range, total value, avg/record)
 5d5077a Add Welcome Back home screen with business snapshot + briefing highlights
