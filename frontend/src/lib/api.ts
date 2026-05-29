@@ -19,7 +19,15 @@ function authHeaders(): Record<string, string> {
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`${res.status}: ${text}`);
+    if (res.status >= 500) {
+      throw new Error("Something went wrong. Please try again.");
+    }
+    let detail: string | null = null;
+    try {
+      const json = JSON.parse(text);
+      if (typeof json.detail === "string") detail = json.detail;
+    } catch {}
+    throw new Error(detail ?? "Something went wrong. Please try again.");
   }
   return res.json();
 }
@@ -84,7 +92,12 @@ export async function deleteBusiness(businessId: string): Promise<void> {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`${res.status}: ${text}`);
+    let detail: string | null = null;
+    try {
+      const json = JSON.parse(text);
+      if (typeof json.detail === "string") detail = json.detail;
+    } catch {}
+    throw new Error(detail ?? "Something went wrong. Please try again.");
   }
 }
 

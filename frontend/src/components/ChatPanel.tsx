@@ -96,7 +96,9 @@ export function ChatPanel({ datasetId }: Props) {
           <div className="text-sm text-slate-500 italic">Thinking… (calling tools)</div>
         )}
         {error && (
-          <div className="text-sm text-red-600">Error: {error}</div>
+          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
         )}
       </div>
 
