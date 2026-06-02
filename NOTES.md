@@ -1,4 +1,4 @@
-# Handoff — last updated 2026-05-29
+# Handoff — last updated 2026-06-02
 
 ## What is built and working
 
@@ -180,14 +180,16 @@ POST /datasets/{id}/chat
 
 ## What's left for the demo (CS153 deadline)
 
-The core product is complete. One remaining polish item:
+The product is complete and polished. No remaining code work — only a setup task:
 
-1. **Multiple businesses demo** — pre-seeding a second business in a different industry (just sign up a fresh account and upload a CSV) would make the product feel more general during the demo. This is a setup task, not a code change.
+1. **Multiple businesses demo** — sign up a fresh account before the demo and upload two different CSVs (e.g. café + restaurant) so the sidebar shows two businesses. Takes ~2 minutes. The feature works; this is just seeding demo data.
 
-**Completed polish (2026-05-29):**
+**Completed polish (2026-05-29 – 2026-06-02):**
 - **Eval runner** — confirmed ALL GREEN: 18/18 checks across café, NGO, and restaurant fixtures. ~43–52s per fixture.
-- **Error UX** — `handleResponse` in `api.ts` now extracts the `detail` field from JSON error bodies. 5xx errors show a generic "Something went wrong. Please try again." All error displays are styled as a `bg-red-50` box instead of raw red text.
-- **Loading state** — briefing generation now shows a spinner in the button + a step indicator below ("Analyzing your data…" → "Computing statistics…" → "Writing briefing…") that cycles every 14s.
+- **Error UX** — `handleResponse` in `api.ts` now extracts the `detail` field from JSON error bodies. 5xx errors show "Something went wrong. Please try again." All error displays styled as a `bg-red-50` box.
+- **Loading state** — briefing generation shows a spinner + step indicator ("Analyzing your data…" → "Computing statistics…" → "Writing briefing…") cycling every 14s.
+- **README** — full rewrite with real screenshots. Leads with the restaurant briefing (65% growth + z-score -6.12 anomaly in the headline). Shows café vs restaurant to demonstrate domain generality. Multi-business sidebar screenshot included. Screenshots live in `docs/screenshots/`.
+- **GitHub profile** — OpsAI added to `github.com/RyanTellado/RyanTellado` selected projects list.
 
 **Do not build** (per CLAUDE.md): forecasting, what-if, PDF export, dark mode, mobile layout, email delivery, Postgres, Docker, CI/CD.
 
@@ -220,6 +222,9 @@ This test (saved at `/tmp/test_opsai2.cjs`) signs up a fresh user, runs through 
 ## Git history
 
 ```
+bbc15c2 Overhaul README — lead with briefing output, add multi-domain + multi-business screenshots
+2e055b9 Add comprehensive README with screenshots
+1f8fea8 Update NOTES.md handoff — eval green, error UX + loading state done
 26fb0ce Add spinner and animated step indicator to briefing loading state
 bf8f4b4 Improve error UX — friendly messages instead of raw API strings
 e795bd1 Update NOTES.md handoff for current state (2026-05-27)
