@@ -6,6 +6,23 @@ Built as a CS153 project at Stanford.
 
 ---
 
+## AI use disclosure
+
+AI tools were used in two distinct ways in this project:
+
+**1. Claude Sonnet 4.6 (Anthropic) — the core engine of the app itself**
+
+The application makes three types of LLM calls at runtime:
+- **Domain profiling:** on CSV upload, one call generates a `profile.json` (domain name, entity grain, key columns, metrics of interest, glossary) from the schema and user description. This profile is passed into every downstream prompt.
+- **Briefing generation:** one call receives the computed stats payload and writes the headline, trends, anomalies, and recommended actions. The LLM never computes numbers — all figures come from DuckDB queries; the model only writes prose around them.
+- **Chat tool-use loop:** the chat panel runs Claude with four read-only tools (`list_columns`, `get_profile`, `compute_stat`, `run_sql`) in a loop of up to 7 iterations per question.
+
+**2. Claude Code — used to build the project**
+
+Claude Code (Anthropic's AI coding assistant) was used as a development tool throughout the project: scaffolding the FastAPI backend, building the React frontend, writing the DuckDB stat templates, designing the Pydantic validation schema, and iterating on the briefing and profile prompts. All code was reviewed and the architecture, design decisions, and product direction were made by me.
+
+---
+
 ## The briefing
 
 The system detects a 65% revenue growth trend *and* flags a z-score -6.12 revenue collapse in the same headline:
