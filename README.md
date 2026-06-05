@@ -1,6 +1,8 @@
 # OpsAI
 
-Upload a CSV and a one-sentence description of your business. Get back a one-page briefing — headline finding, trends, anomalies, and recommended actions — in about 45 seconds. Every claim cites the number it came from.
+**Who it's for:** Small organizations — local restaurants, nonprofits, clinics — that collect operational data but don't have a data analyst on staff.
+
+**What it does:** Upload a CSV and a one-sentence description of your business. Get back a one-page briefing — headline finding, trends, anomalies, and recommended actions — in about 45 seconds. Every claim cites the number it came from.
 
 Built as a CS153 project at Stanford.
 
@@ -37,11 +39,11 @@ Each card shows a chart, a stat badge (the exact computed value), and a prose ex
 
 The engine has no hard-coded industries. On upload, one LLM call generates a domain profile (key columns, metrics of interest, entity grain, glossary). Everything downstream — stat selection, briefing generation, chat — reads from that profile.
 
-**Food & Beverage** — 150 rows, 15 days of café sales:
+**Food & Beverage** — 150 rows, 15 days of café sales. The system identifies sandwiches as the dominant revenue category and shows a weekly time-series plateau:
 ![Café briefing](docs/screenshots/cafe_briefing.png)
 
-**Restaurant & Dining** — 54,103 rows, 12 months with a planted anomaly:
-*(same screenshot above)*
+**Restaurant & Dining** — 54,103 rows, 12 months. The system identifies a 65% year-long growth trend *and* a z-score -6.12 revenue collapse in the same headline:
+![Restaurant briefing](docs/screenshots/restaurant_briefing.png)
 
 Same pipeline, different profiles, completely different charts and language.
 
@@ -152,10 +154,40 @@ Sample CSVs are in `samples/`. Start with `cafe_ops_small.csv` (150 rows, briefi
 
 ---
 
-## Eval
+## Evaluation
+
+### Automated eval suite
 
 ```bash
 cd backend && .venv/bin/python -m eval.run
 ```
 
-Runs the full pipeline over three fixtures (café, NGO, restaurant). Checks schema validity, minimum item counts, all `stat_ref`s resolve, and domain keyword in headline. **18/18 passing** (~43–52s per fixture).
+Runs the full pipeline end-to-end over three fixture datasets (café, NGO, restaurant) and verifies four properties of each output:
+
+| Check | What it validates |
+|---|---|
+| `schema_valid` | The briefing JSON passes Pydantic validation — all required fields present, correct types, no missing keys |
+| `min_items` | At least 2 trends and 2 recommended actions — guards against degenerate minimal outputs |
+| `all_stat_refs_resolve` | Every `stat_ref` cited in the briefing points to a key that was actually computed by DuckDB — directly tests the grounding mechanism |
+| `keyword_any` | A domain-specific word appears in the headline (e.g. "coffee", "clinic", "revenue") — tests that the profile correctly identified the domain |
+
+**Current result: 18/18 checks passing** across all three fixtures (~43–52s per run).
+
+### Planted anomaly test
+
+`restaurant.csv` contains a deliberate revenue dip in one specific week. The anomaly detection pipeline (rolling z-score over weekly revenue) correctly surfaces it in every run — the headline reads: *"a week-of-April-27 revenue collapse (z-score -6.12) demands immediate investigation."* This serves as a regression test for the anomaly detection path.
+
+### Grounding validation
+
+The `all_stat_refs_resolve` check is the most important structural guarantee: if the LLM fabricates a statistic that was never computed, the briefing fails validation and the pipeline retries with the error appended to the prompt. If it fails twice, the request returns a 502. In practice, this failure has occurred during development when prompts were under-specified; the current prompts pass consistently.
+
+---
+
+## Limitations
+
+- **CSV only, max 50 MB.** No Excel, JSON, or Google Sheets. No streaming uploads.
+- **Fixed stat templates.** The 7 templates cover common patterns (time series, top-N, anomalies) but can't answer arbitrary analytical questions — that's what the chat tool is for.
+- **Profile inference can be wrong.** If column names are ambiguous or non-standard, the LLM may misidentify the date, amount, or grouping columns, producing a valid but misleading briefing. No interactive correction UI exists.
+- **No forecasting.** All trends are historical. The system explicitly does not project beyond the last observed period.
+- **Synchronous generation (~45s).** The briefing blocks the HTTP request. On slow API responses or large CSVs, this can approach 90s.
+- **Localhost only.** No authentication beyond a single instance; not hardened for multi-user production deployment.
