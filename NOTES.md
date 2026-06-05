@@ -1,4 +1,4 @@
-# Handoff — last updated 2026-06-02
+# Handoff — last updated 2026-06-04
 
 ## What is built and working
 
@@ -175,6 +175,24 @@ POST /datasets/{id}/chat
 4. **No LangChain.** Direct Anthropic SDK calls only.
 5. **Model:** Claude Sonnet 4.6 (`claude-sonnet-4-6`) for all LLM calls.
 6. **Chat history** is in-memory per session only. Not persisted.
+
+---
+
+## Post-grading task (do this once CS153 is fully graded)
+
+A portfolio-ready README is sitting at `README.portfolio.md` — **untracked, not committed**. It removes the CS153 course framing and the AI disclosure compliance section, folds the LLM architecture explanation naturally into "How it works" instead.
+
+**To switch it over:**
+```bash
+cp README.portfolio.md README.md
+rm README.portfolio.md
+git add README.md
+git rm README.portfolio.md   # if it ever got tracked by mistake
+git commit -m "Switch to portfolio README"
+git push
+```
+
+Also update the GitHub profile entry at `github.com/RyanTellado/RyanTellado` — remove "CS153 project at Stanford" from the description if it's still there.
 
 ---
 
